@@ -5,16 +5,46 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cabin</title>
+    <meta name="description" content="A place of meeting.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/style.css" rel="stylesheet">
     <script>
-        const ROOM_ID = "<%= cabinAddress %>"
+        const USERNAME = "<%= username %>"
+        const CABIN_ADDRESS = "<%= cabinAddress %>"
         const USER_ID = "<%= userId %>"
+
+        function copyText() {
+            navigator.clipboard.writeText(`${USERNAME} is inviting you to a cabin! Join now: https://${location.hostname}/cabin/${CABIN_ADDRESS}`)
+        }
     </script>
-    <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js" defer></script>
+    <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.js" defer></script>
     <script src="/socket.io/socket.io.js" defer></script>
-    <script src="../scripts/cabin.js" defer></script>
+    <script src="../scripts/cabin/cabin.js" type="module" defer></script>
+    <script src="../scripts/cabin/grid.js" defer></script>
 </head>
-<body>
-    <div id="video-grid">
+<body style="margin:0px;">
+    <div class="video-grid" id="video-grid">
+        
+    </div>
+
+    <div class="control-buttons bg-dark rounded"style="max-height: 320x; max-width: 320px;">
+        <div class="d-flex justify-content-center" style="padding: 1rem;">
+            <button id="toggle-mic" class="btn rounded-circle btn-light d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="b bi bi-mic-fill glow"></i>
+            </button>
+            <button id="toggle-camera" class="btn rounded-circle btn-light d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="b bi bi-camera-video-fill glow"></i>
+            </button>
+            <button id="leave" class="btn rounded-circle btn-danger d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="b bi bi-telephone-fill glow" style="color: rgb(255, 255, 255)"></i>
+            </button>
+            <button onclick="copyText()" class="btn rounded-circle btn-success d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="bi bi-share glow" style="color: rgb(255, 255, 255)"></i>
+            </button>
+            <!-- <button id="debug" class="btn rounded-circle btn-danger d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="" style="color: rgb(255, 255, 255)">Debug</i>
+            </button> -->
+        </div>
+        </div>
 </body>
 </html>

@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
+import * as https from 'https'
 import * as http from 'http'
 import { Server } from "socket.io";
 import User from './models/user.js'
@@ -10,6 +11,9 @@ import * as validator from 'email-validator'
 import jsonwebtoken from "jsonwebtoken"
 import cookieParser from "cookie-parser"
 import { v4 as uuidV4 } from 'uuid';
+import * as fs from 'fs';
+import fetch from "node-fetch";
+import { ExpressPeerServer } from "peer"
 
 
 
@@ -24,38 +28,80 @@ mongoose.connect(process.env.FIREWOOD_DB_URI, {
 app.use(cors())
 app.use(express.json())
 app.use(cookieParser())
+
 const server = http.Server(app)
 const io = new Server(server)
 
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    port: 3030
+})
+
+app.use('/peerjs', peerServer)
 app.set('view engine', 'ejs')
 app.use(express.static("public"))
+app.use('/sounds', express.static("sounds"))
+
+
+app.use((req, res, next) => {
+    // Get auth token from the cookies
+    const token = req.cookies['token'];
+    // Inject the user to the request
+    try {
+        req.user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
+    } catch (error) {
+        res.clearCookie('token')
+        req.user = false
+    }
+    next();
+});
+
+const loginRequired = (req, res, next) => {
+    
+    if (req.user) {
+        next();
+    } else {
+       res.redirect('/')
+    }
+};
+
 
 app.get('/', (req, res) => {
+    User.deleteMany({})
     var token = req.cookies['token']
         try {
             var user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
             console.log("Current: ", user)
         } catch (error) {
-            res.clearCookie()
+            res.clearCookie('token')
             return res.render('home-no-user')
         }
-    res.render('boilerplate', {data: user['username']})
+    res.render('home', {user: user})
 })
 
-app.get('/new-cabin', (req, res) => {
-    res.redirect(`/cabin/${uuidV4()}`)
+app.get('/new-cabin', loginRequired, (req, res) => {
+    const cabinAddress = uuidV4()
+    res.redirect(`/cabin/${cabinAddress}`)
 })
 
-app.get('/cabin/:cabin', (req, res) => {
-    res.render('cabin', { cabinAddress: req.params.cabin, userId: jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)['id']})
+app.get('/cabin/:cabin', loginRequired, (req, res) => {
+    // cabinAddress = req.params.cabin
+    res.render('cabin', { cabinAddress: req.params.cabin, userId: jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)['id'], username: jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)['username']})
 })
 
 io.on('connection', socket => {
-    socket.on('join-cabin', ( cabinAddress, userId ) => {
+    socket.on('join-cabin', ( cabinAddress, userId, username ) => {
         socket.join(cabinAddress)
-        socket.to(cabinAddress).emit('user-connected', userId)
+        socket.to(cabinAddress).emit('user-connected', userId, username)
+        console.log(`${username} (${userId}) connected to '${cabinAddress}'`)
+
+        socket.on('data test', (data) => {
+            console.log(data)
+        })
+
         socket.on('disconnect', () => {
-            socket.to(cabinAddress).emit('user-disconnected', userId)
+            console.log(`${username} (${userId}) disconnected from '${cabinAddress}'`)
+            socket.to(cabinAddress).emit('user-disconnected', userId, username)
         })
     })
 })
@@ -67,7 +113,7 @@ app.get('/register', (req, res) => {
             var user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
             console.log("Current: ", user)
         } catch (error) {
-            res.clearCookie()
+            res.clearCookie('token')
             res.redirect('/register')
         }
         return res.redirect('/')
@@ -77,13 +123,18 @@ app.get('/register', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
+    let response = fetch('https://4d4e-122-161-90-135.in.ngrok.io/api/state.json');
+    let data = response
+
+    console.log(data)
+
     var token = req.cookies['token']
     if (token) {
         try {
             var user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
             console.log("Current: ", user)
         } catch (error) {
-            res.clearCookie()
+            res.clearCookie('token')
             res.redirect('/login')
         }
         return res.redirect('/')
@@ -108,7 +159,7 @@ app.post('/api/login', async (req, res) => {
         usermail = usermail.toLowerCase()
         console.log(usermail)
         if (typeof(usermail) !== 'string') {
-            return res.json({status: 'error', error: 'Invalid e-mail'})
+            return res.json({status: 'error', error: 'Invalid e-mail/username/password'})
         }
         user = await User.findOne({ email: usermail }).exec()
 
@@ -122,8 +173,7 @@ app.post('/api/login', async (req, res) => {
     if (!user) {
         return res.json({status: 'error', error: 'Invalid e-mail/username/password'})
     }
-    
-    console.log(passwordPlain)
+
 
     
     
@@ -140,7 +190,7 @@ app.post('/api/login', async (req, res) => {
         res.cookie('token', token)
         return res.json({status: 'ok', data: token})
     }
-    return res.json({status: "error", error: 'Invalid password'})
+    return res.json({status: "error", error: 'Invalid e-mail/username/password'})
 })
 
 app.post('/api/register', async (req, res) => {
@@ -177,8 +227,8 @@ app.post('/api/register', async (req, res) => {
         console.log("User created successfully " + response)
     } catch (error) {
         if (error.code === 11000) {
-            // duplicate username
-            return res.json({ status: 'error', error: 'Username already in use.'})
+            // duplicate username or e-mail
+            return res.json({ status: 'error', error: 'Username/E-mail already in use.'})
         }
         throw error
     }
@@ -186,7 +236,7 @@ app.post('/api/register', async (req, res) => {
     const user = await User.findOne({ email }).lean()
     const token = jsonwebtoken.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET)
     res.cookie('token', token)
-    return res.json({status: 'ok'})
+    res.json({status: 'ok'})
 
 })
 
@@ -212,4 +262,6 @@ app.get('/api/state.json', (req, res) => {
 
 })
 
+
 server.listen(3000)
+console.log("Listening on port 3000")
