@@ -9,7 +9,7 @@ export default class Video {
         grid.appendChild(this.video)
     }
 
-    get() {
+    getVideo() {
         return this.video
     }
 }

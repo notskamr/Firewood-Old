@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Bootstrap -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,8 +14,57 @@
         const CABIN_ADDRESS = "<%= cabinAddress %>"
         const USER_ID = "<%= userId %>"
 
-        function copyText() {
-            navigator.clipboard.writeText(`${USERNAME} is inviting you to a cabin! Join now: https://${location.hostname}/cabin/${CABIN_ADDRESS}`)
+        var poppedUp = false
+        
+        var div;
+        window.onload = () => { div = document.getElementById("popup")}
+        async function copyText(text=`${USERNAME} is inviting you to a cabin! Join now: https://${location.hostname}/cabin/${CABIN_ADDRESS}`) {
+            navigator.clipboard.writeText(text)
+            
+            if (poppedUp == false) {
+                poppedUp = true
+                div.style.setProperty('padding', '1rem')
+                const h1 = document.createElement("h1")
+                h1.classList.add("roboto", "popup")
+                h1.innerHTML = "The invite has been copied to your clipboard!"
+                div.appendChild(h1)
+                div.style.opacity = 0
+                fadeIn(div)
+                await sleep(1500)
+                fadeOut(div)
+                await sleep(400)
+                h1.remove()
+                
+            }
+            poppedUp = false
+        }
+
+        async function fadeIn(element) {
+            opacity = parseInt(getComputedStyle(element).getPropertyValue("opacity"))
+
+
+            const interval = setInterval(() => {
+            if (opacity < 1) {opacity += 0.05; element.style.opacity = opacity}
+            else {
+                clearInterval(interval);
+                return true;
+            }
+            }, 20)
+        }
+
+        async function fadeOut(element) {
+
+            opacity = parseInt(getComputedStyle(element).getPropertyValue("opacity"))
+
+
+            const interval = setInterval(() => {
+            if (opacity > 0) {opacity -= 0.05; element.style.opacity = opacity}
+            else {clearInterval(interval);  element.style.opacity = 0; return true;}
+            }, 20)
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     </script>
     <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.js" defer></script>
@@ -27,8 +77,12 @@
         
     </div>
 
+    <div id="popup" class="popup">
+
+    </div>
+
     <div class="control-buttons bg-dark rounded"style="max-height: 320x; max-width: 320px;">
-        <div class="d-flex justify-content-center" style="padding: 1rem;">
+        <div id="buttons" class="d-flex justify-content-center" style="padding: 1rem;">
             <button id="toggle-mic" class="btn rounded-circle btn-light d-flex justify-content-center align-items-center invert grow mx-2">
                 <i class="b bi bi-mic-fill glow"></i>
             </button>
@@ -41,8 +95,11 @@
             <button onclick="copyText()" class="btn rounded-circle btn-success d-flex justify-content-center align-items-center invert grow mx-2">
                 <i class="bi bi-share glow" style="color: rgb(255, 255, 255)"></i>
             </button>
-            <!-- <button id="debug" class="btn rounded-circle btn-danger d-flex justify-content-center align-items-center invert grow mx-2">
+            <button id="debug" class="btn rounded-circle btn-danger d-flex justify-content-center align-items-center invert grow mx-2">
                 <i class="" style="color: rgb(255, 255, 255)">Debug</i>
+            </button>
+            <!-- <button id="flip-camera" class="btn rounded-circle btn-danger d-flex justify-content-center align-items-center invert grow mx-2">
+                <i class="" style="color: rgb(255, 255, 255)">Flip</i>
             </button> -->
         </div>
         </div>

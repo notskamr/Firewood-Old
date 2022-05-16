@@ -15,6 +15,29 @@ var localStream;
 var userCount = 1;
 var users = {}
 var peers = {}
+
+var facing = "user"
+var localVideo;
+// Checking the SupportedConstraints of the device
+const supports = navigator.mediaDevices.getSupportedConstraints();
+
+/* const flipButton = document.getElementById("flip-camera")
+
+if (!supports.facingMode) {
+    // flipButton.remove()
+}
+else {
+    flipButton.addEventListener('click', () => {
+        flipCamera()
+        console.log('flip')
+    })
+}
+
+
+*/
+console.log(supports)
+
+
 // creating and getting a new Stream
 new Stream().getLocal().then(
     stream => {
@@ -50,6 +73,7 @@ new Stream().getLocal().then(
             
             // Whenever the call from the user closes, delete the data relative to the user
             call.on('close', () => {
+                if (users[call.metadata.id]) users[call.metadata.id].getVideo().remove()
                 delete users[call.metadata.id]
                 peers[call.metadata.id].close()
             })
@@ -126,6 +150,7 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
     
     // Whenever the call closes, delete the data relative to the user
     call.on('close', () => {
+        if (users[newUserId]) users[newUserId].getVideo().remove()
         delete users[newUserId]
         peers[newUserId].close()
     })
@@ -135,7 +160,48 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
 }
 
 
+/* async function flipCamera() {
+    console.log("Flipping camera...")
+    const tracks = localStream.getTracks()
+    const currFacingMode = localStream.getVideoTracks()[0].getSettings().facingMode
+    console.log(facing)
+    tracks.forEach(track => { if (track.kind === "video") track.stop;})
 
+    let flippedStream;
+
+    if (facing == "user") {
+        await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: {ideal: 1920},
+                height: {ideal: 1080},
+                facingMode: 'environment'
+            },
+        }).then(stream => {flippedStream = stream}).catch(err => console.log(err))
+
+        facing = "environment"
+    }
+    else {
+        await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: {ideal: 1920},
+                height: {ideal: 1080},
+                facingMode: 'user'
+            },
+        }).then(stream => {flippedStream = stream}).catch(err => console.log(err))
+
+        facing = "user"
+    }
+
+    for (let [key, value] of Object.entries(peer.connections)) {
+        console.log(peer.connections)
+        console.log(key)
+        console.log(peer.connections[key][0].peerConnection.getSenders()[1])
+        peer.connections[key][0].peerConnection.getSenders()[1].replaceTrack(flippedStream.getTracks()[0])
+    }
+
+    console.log(localStream.getVideoTracks()[0])
+    
+} */
 
 
 function calculateGrid() {

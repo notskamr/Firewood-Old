@@ -8,12 +8,11 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     friends: [{ type: ObjectId, ref: 'Friends'}],
-    enemies: [{ type: ObjectId }]
+    enemies: [{ type: ObjectId , ref: 'User'}]
 }, { collection: 'users' , timestamps: true})
 
 UserSchema.pre("save", function (next) {
     const user = this
-
     if (this.isModified("password") || this.isNew) {
       bcrypt.genSalt(10, function (saltError, salt) {
         if (saltError) {
@@ -33,6 +32,7 @@ UserSchema.pre("save", function (next) {
       return next()
     }
   })
+
 
 const User = mongoose.model('User', UserSchema)
 
