@@ -97,6 +97,7 @@ io.on('connection', socket => {
         socket.on('disconnect', () => {
             console.log(`${username} (${userId}) disconnected from '${cabinAddress}'`)
             socket.to(cabinAddress).emit('user-disconnected', userId, username)
+            socket.disconnect(true)
         })
     })
 })

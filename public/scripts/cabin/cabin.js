@@ -52,6 +52,9 @@ new Stream().getLocal().then(
         // Printing out our media stream resolution (For convenience!)
         console.log(`Width: ${stream.getVideoTracks()[0].getSettings().width} Height: ${stream.getVideoTracks()[0].getSettings().height}`)
 
+        // Emitting that we (the current user, which is us on the client side) have joint this specific room; and here are our details (id, username)
+        socket.emit('join-cabin', CABIN_ADDRESS, USER_ID, USERNAME)
+
         // Whenever we are called - run this code
         peer.on('call', call => {
             // Answer the call
@@ -70,7 +73,8 @@ new Stream().getLocal().then(
                 users[call.metadata.id] = constructedNewVideo
                 
             })
-            
+
+
             // Whenever the call from the user closes, delete the data relative to the user
             call.on('close', () => {
                 if (users[call.metadata.id]) users[call.metadata.id].getVideo().remove()
@@ -87,11 +91,10 @@ new Stream().getLocal().then(
         // Whenever a new user connects, the code inside is run; thus we get the new user's: id and username
         socket.on('user-connected', (userId, username) => {
             console.log(`${username} (${userId}) connected.`)
+
             // We connect to this new user; by sending him our stream
+            connectToNewUser(USERNAME, USER_ID, userId, username,/* Our stream -> */ stream)
             
-            setTimeout(() => {
-                connectToNewUser(USERNAME, USER_ID, userId, username,/* Our stream -> */ stream)
-            }, 3000)
             
         })
     }
@@ -120,9 +123,6 @@ socket.on('user-disconnected', (id, username) => {
         
 })
 
-
-// Emitting that we (the current user, which is us on the client side) have joint this specific room; and here are our details (id, username)
-socket.emit('join-cabin', CABIN_ADDRESS, USER_ID, USERNAME)
 
 
 
@@ -361,6 +361,7 @@ if (debugButton) {
 
 window.onbeforeunload = () => {
     peer.close()
+    socket.emit('disconnect')
 }
 
 window.onresize = calculateGrid
