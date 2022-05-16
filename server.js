@@ -63,7 +63,6 @@ const loginRequired = (req, res, next) => {
     }
 };
 
-
 app.get('/', (req, res) => {
     User.deleteMany({})
     var token = req.cookies['token']
@@ -82,8 +81,8 @@ app.get('/new-cabin', loginRequired, (req, res) => {
     res.redirect(`/cabin/${cabinAddress}`)
 })
 
-app.get('/cabin/:cabin', loginRequired, (req, res) => {
-    // cabinAddress = req.params.cabin
+app.get('/cabin/:cabin?', loginRequired, (req, res) => {
+    if (!req.params.cabin) return res.redirect('/')
     res.render('cabin', { cabinAddress: req.params.cabin, userId: jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)['id'], username: jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)['username']})
 })
 
