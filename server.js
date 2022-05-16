@@ -18,6 +18,7 @@ import { ExpressPeerServer } from "peer"
 
 
 const app = express()
+
 dotenv.config()
 
 mongoose.connect(process.env.FIREWOOD_DB_URI, {
@@ -31,6 +32,8 @@ app.use(cookieParser())
 
 const server = http.Server(app)
 const io = new Server(server)
+
+const cookieAge = 3 // in days
 
 
 app.set('view engine', 'ejs')
@@ -183,7 +186,7 @@ app.post('/api/login', async (req, res) => {
         // Found
         console.log('Logged in.')
         const token = jsonwebtoken.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET)
-        res.cookie('token', token)
+        res.cookie('token', token, { maxAge: 1000*60*60*24*cookieAge })
         return res.json({status: 'ok', data: token})
     }
     return res.json({status: "error", error: 'Invalid e-mail/username/password'})
@@ -231,7 +234,7 @@ app.post('/api/register', async (req, res) => {
 
     const user = await User.findOne({ email }).lean()
     const token = jsonwebtoken.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET)
-    res.cookie('token', token)
+    res.cookie('token', token, { maxAge: 1000*60*60*24*cookieAge })
     res.json({status: 'ok'})
 
 })
