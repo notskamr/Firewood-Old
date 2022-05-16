@@ -33,7 +33,6 @@ const server = http.Server(app)
 const io = new Server(server)
 
 
-app.use('/peerjs', peerServer)
 app.set('view engine', 'ejs')
 app.use(express.static("public"))
 app.use('/sounds', express.static("sounds"))
