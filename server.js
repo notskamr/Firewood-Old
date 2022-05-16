@@ -258,6 +258,6 @@ app.get('/api/state.json', (req, res) => {
 })
 
 
-server.listen(process.env.port || 3000, () => {
-	console.log(`Listening on ${this.address().port}`)
+const listener = server.listen(process.env.port || 3000, () => {
+	console.log(`Listening on ${listener.address().port}`)
 })
