@@ -19,24 +19,31 @@
         var div;
         window.onload = () => { div = document.getElementById("popup")}
         async function copyText(text=`${USERNAME} is inviting you to a cabin! Join now: https://${location.hostname}/cabin/${CABIN_ADDRESS}`) {
-            navigator.clipboard.writeText(text)
-            
-            if (poppedUp == false) {
-                poppedUp = true
-                div.style.setProperty('padding', '1rem')
-                const h1 = document.createElement("h1")
-                h1.classList.add("roboto", "popup")
-                h1.innerHTML = "The invite has been copied to your clipboard!"
-                div.appendChild(h1)
-                div.style.opacity = 0
-                fadeIn(div)
-                await sleep(1500)
-                fadeOut(div)
-                await sleep(400)
-                h1.remove()
-                
+            if (navigator.share) {
+                navigator.share({
+                    text: `${USERNAME} is inviting you to a cabin! Join now!`,
+                    url: `https://${location.hostname}/cabin/${CABIN_ADDRESS}`,
+                    title: `Firewood - Join Cabin`
+                })
             }
-            poppedUp = false
+            else {
+                navigator.clipboard.writeText(text)
+                if (poppedUp == false) {
+                    poppedUp = true
+                    div.style.setProperty('padding', '1rem')
+                    const h1 = document.createElement("h1")
+                    h1.classList.add("roboto", "popup")
+                    h1.innerHTML = "The invite has been copied to your clipboard!"
+                    div.appendChild(h1)
+                    div.style.opacity = 0
+                    fadeIn(div)
+                    await sleep(1500)
+                    fadeOut(div)
+                    await sleep(400)
+                    h1.remove()  
+                }
+                poppedUp = false
+            }
         }
 
         async function fadeIn(element) {
