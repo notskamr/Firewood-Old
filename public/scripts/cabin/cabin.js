@@ -19,6 +19,8 @@ var peers = {}
 var facing = "user"
 var localVideo;
 
+var userLeaveSound = new Audio('.././sounds/userLeave.ogg')
+var userJoinSound = new Audio('.././sounds/userJoin.ogg')
 var gridNumber = 1;
 // Checking the SupportedConstraints of the device
 const supports = navigator.mediaDevices.getSupportedConstraints();
@@ -94,6 +96,7 @@ new Stream().getLocal().then(
         socket.on('user-connected', (userId, username) => {
             console.log(`${username} (${userId}) connected.`)
 
+            userJoinSound.play()
             // We connect to this new user; by sending him our stream
             connectToNewUser(USERNAME, USER_ID, userId, username,/* Our stream -> */ stream)
             
@@ -108,19 +111,21 @@ socket.on('user-disconnected', (id, username) => {
     // Logging the disconnection
     console.log(`${username} (${id}) disconnected.`)
 
-        // Remove that users video element
-        if(document.getElementById(`div-${id}`)) document.getElementById(`div-${id}`).remove()
+    // Remove that users video element
+    if(document.getElementById(`div-${id}`)) document.getElementById(`div-${id}`).remove()
 
-        calculateGrid()
-        // Remove him from the 'users' and 'peers' objects; and close the peer connection.
-        delete users[id]
+    //Calculate grid
+    calculateGrid()
 
-        if (peers[id]) {
-            peers[id].close(); 
-            delete peers[id];
-        }
+    // Remove him from the 'users' and 'peers' objects; and close the peer connection.
+    delete users[id]
+    userLeaveSound.play()
+    if (peers[id]) {
+        peers[id].close(); 
+        delete peers[id];
+    }
 
-        console.log(peers, users)
+    console.log(peers, users)
 
         
 })
@@ -339,7 +344,7 @@ toggleMic.addEventListener('click', (e) => {
     toggle("audio")
 })
 
-var leaveSound = new Audio('.././sounds/leave.mp3')
+var leaveSound = new Audio('.././sounds/leave.ogg')
 leaveBtn.addEventListener('click', async (e) => {
     if (!left) {
         e.preventDefault()
