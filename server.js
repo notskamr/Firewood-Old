@@ -277,7 +277,7 @@ app.post('/api/forgot-password', async (req, res) => {
         resetURL
     })
     console.log(response)
-
+    var emailId = response['_id'].valueOf()
 
     const transporter = NodeMailer.createTransport({
         host: "smtp.gmail.com",
@@ -292,8 +292,8 @@ app.post('/api/forgot-password', async (req, res) => {
     let mail = await transporter.sendMail({
         from: '"Firewood [no-reply]" <app@firewood.ga>',
         to: "sahnivarun62@gmail.com",
-        subject: `Reset account password - ${user['username']}`,
-        html: resetMail(user['username'], resetURL)
+        subject: `Firewood: Reset account password - #${emailId}`,
+        html: resetMail(user['username'], resetURL, emailId)
         
     }).catch(err => console.log(err))
 
