@@ -96,6 +96,7 @@ new Stream().getLocal().then(
         socket.on('user-connected', (userId, username) => {
             console.log(`${username} (${userId}) connected.`)
 
+            //Play join sound
             userJoinSound.play()
             // We connect to this new user; by sending him our stream
             connectToNewUser(USERNAME, USER_ID, userId, username,/* Our stream -> */ stream)
@@ -119,6 +120,7 @@ socket.on('user-disconnected', (id, username) => {
 
     // Remove him from the 'users' and 'peers' objects; and close the peer connection.
     delete users[id]
+    //Play leave sound
     userLeaveSound.play()
     if (peers[id]) {
         peers[id].close(); 
