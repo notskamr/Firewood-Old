@@ -13,6 +13,6 @@ const FriendsSchema = new mongoose.Schema({
   }, {timestamps: true})
 
 
-const Friends = mongoose.model('Model', FriendsSchema)
+const Friends = mongoose.model('Friends', FriendsSchema)
 
 export default Friends

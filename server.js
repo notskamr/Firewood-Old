@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
+import NodeMailer from "nodemailer"
 import * as https from 'https'
 import * as http from 'http'
 import { Server } from "socket.io";
@@ -14,7 +15,9 @@ import { v4 as uuidV4 } from 'uuid';
 import * as fs from 'fs';
 import fetch from "node-fetch";
 import { ExpressPeerServer } from "peer"
-
+import { ResetPassword } from "./models/reset.js"
+import { resetMail } from "./mail/ResetPassword.js"
+import { ObjectId } from "mongodb"
 
 
 const app = express()
@@ -32,6 +35,7 @@ app.use(cookieParser())
 
 const server = http.Server(app)
 const io = new Server(server)
+
 
 const cookieAge = 3 // in days
 
@@ -64,7 +68,6 @@ const loginRequired = (req, res, next) => {
 };
 
 app.get('/', (req, res) => {
-    User.deleteMany({})
     var token = req.cookies['token']
         try {
             var user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
@@ -140,10 +143,62 @@ app.get('/login', (req, res) => {
     return res.render('login')
 })
 
+app.get('/forgot-password', async (req, res) => {
+    return res.render('password/forgot-password')
+})
+app.get('/forgot-password/reset-:resetId?', async (req, res) => {
+    if (!req.params.resetId) return res.redirect('/forgot-password')
+
+    var resetId = req.params.resetId
+    console.log(resetId)
+    const reset = await ResetPassword.findOne({ resetURL: resetId }).exec()
+    if (!reset) return res.redirect('/forgot-password')
+    console.log(reset)
+
+    const resetUser = reset['userId']
+
+    const user = await User.findById(reset['userId'])
+    if (!user) return res.redirect('/forgot-password')
+
+    console.log(user)
+    
+    return res.render("password/change-password", { id: user['_id'] })
+})
+
+app.post('/api/change-password', async (req, res) => {
+    if (!req.body.password || !req.body.confirmation || !req.body.userId ) return res.json({status: 'error', error: 'Missing fields.'})
+    if (req.body.password != req.body.confirmation) return res.json({status: 'error', error: 'Both password fields don\'t match.'})
+
+    const password = req.body.password
+    if (!(password.length >= 7)) {
+        return res.json({ status: 'error', error: 'Password is too small. Should be atleast 7 characters.'})
+    }
+    
+    const userId = req.body.userId
+    // Finding user
+    const user = User.findById(req.body.userId).then(
+        user => {
+            if (!user) return res.json({ status: 'error', error: "Problem with the reset. Please try again or contact the developer." })
+
+            if (user.password == password) return res.json({ status: 'error', error: "This is already your password!"})
+
+            user.password = password
+            user.save()
+            console.log(user)
+        }
+    ).catch(err => console.log(err))
+
+    const deleteOldResetLinks = await ResetPassword.deleteMany({ userId: userId })
+    console.log(deleteOldResetLinks)
+    return res.json({ status: 'ok' })
+})
+
 app.get('/logout', (req, res) => {
     res.clearCookie('token')
     res.redirect('/')
 })
+
+
 
 app.post('/api/login', async (req, res) => {
     var { usermail, password: passwordPlain } = req.body
@@ -171,12 +226,7 @@ app.post('/api/login', async (req, res) => {
     if (!user) {
         return res.json({status: 'error', error: 'Invalid e-mail/username/password'})
     }
-
-
     
-    
-
-
     console.log(user)
 
     var hash = user['password']
@@ -189,6 +239,66 @@ app.post('/api/login', async (req, res) => {
         return res.json({status: 'ok', data: token})
     }
     return res.json({status: "error", error: 'Invalid e-mail/username/password'})
+})
+
+
+
+
+app.post('/api/forgot-password', async (req, res) => {
+    if (!req.body.usermail) return res.json({ status: 'error', error: 'No username/e-mail provided'})
+    var usermail = req.body.usermail
+    var user;
+
+    if (validator.validate(usermail)) {
+        // input is an e-mail
+        usermail = usermail.toLowerCase()
+        console.log(usermail)
+        if (typeof(usermail) !== 'string') {
+            return res.json({status: 'error', error: 'Invalid e-mail/username'})
+        }
+        user = await User.findOne({ email: usermail }).exec()
+
+    }
+    else {
+        usermail = usermail
+        console.log(usermail)
+        user = await User.findOne({ username: usermail }).exec()
+    }
+
+    if (!user) {
+        return res.json({status: 'error', error: 'Invalid e-mail/username'})
+    }
+    
+    const userId = user['_id'].valueOf()
+    const resetURL = `${uuidV4()}`
+
+    const response = await ResetPassword.create({
+        userId,
+        resetURL
+    })
+    console.log(response)
+
+
+    const transporter = NodeMailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: "appfirewood@gmail.com",
+            pass: `${process.env.PASSWORD}`
+        },
+    })
+
+    let mail = await transporter.sendMail({
+        from: '"Firewood [no-reply]" <app@firewood.ga>',
+        to: "sahnivarun62@gmail.com",
+        subject: `Reset account password - ${user['username']}`,
+        html: resetMail(user['username'], resetURL)
+        
+    }).catch(err => console.log(err))
+
+
+    res.json({status: 'ok'})
 })
 
 app.post('/api/register', async (req, res) => {
@@ -208,7 +318,7 @@ app.post('/api/register', async (req, res) => {
         return res.json({ status: 'error', error: 'Invalid E-mail'})
     }
 
-    if (password.length < 6) {
+    if (!(password.length >= 7)) {
         return res.json({ status: 'error', error: 'Password is too small. Should be atleast 7 characters.'})
     }
 
@@ -259,7 +369,6 @@ app.get('/api/state.json', (req, res) => {
     }
 
 })
-
 
 const listener = server.listen(process.env.PORT || 3000, () => {
 	console.log(`Listening on ${listener.address().port}`)
