@@ -18,6 +18,8 @@ var peers = {}
 
 var facing = "user"
 var localVideo;
+
+var gridNumber = 1;
 // Checking the SupportedConstraints of the device
 const supports = navigator.mediaDevices.getSupportedConstraints();
 
@@ -47,7 +49,7 @@ new Stream().getLocal().then(
         localStream = stream
         // Constructing the video element
         const constructedLocalVideo = new Video(userStream.constructLocalVideo(`You (${USERNAME})`))
-        constructedLocalVideo.appendGrid(videoGrid)
+        constructedLocalVideo.appendGrid(`${videoGrid}${gridNumber}`)
 
         // Printing out our media stream resolution (For convenience!)
         console.log(`Width: ${stream.getVideoTracks()[0].getSettings().width} Height: ${stream.getVideoTracks()[0].getSettings().height}`)
@@ -67,7 +69,7 @@ new Stream().getLocal().then(
                 const constructedNewVideo = new Video(newUserStream.constructLocalVideo())
         
                 //Adding the constructed video to the grid - checking if the user is already added to the grid/alraedy initialized in our 'users' object
-                if (!users[call.metadata.id]) {constructedNewVideo.appendGrid(videoGrid); calculateGrid()}
+                if (!users[call.metadata.id]) {constructedNewVideo.appendGrid(`${videoGrid}${gridNumber}`); calculateGrid()}
                 
                 // Add the users video to the list (object, really) of 'users'
                 users[call.metadata.id] = constructedNewVideo
@@ -142,7 +144,7 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
         const constructedNewVideo = new Video(newUserStream.constructLocalVideo())
 
         //Adding the constructed video to the grid - and checking if he is already added
-        if (!users[newUserId]) {constructedNewVideo.appendGrid(videoGrid); calculateGrid()}
+        if (!users[newUserId]) {constructedNewVideo.appendGrid(`${videoGrid}${gridNumber}`); calculateGrid()}
 
         // Add the new user to our 'users' object
         users[newUserId] = constructedNewVideo
@@ -204,63 +206,97 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
 } */
 
 
+// Setting up flkty for carousels
+var flkty = new Flickity('.main-gallery', {"contain": true, "wrapAround": true, "draggable": ">1"})
+
+
+
 function calculateGrid() {
     var userCount = document.querySelectorAll(".video-container").length
-    console.log("Calculating...")
-    var type = getComputedStyle(document.documentElement).getPropertyValue("--type")
-    
-    var grid = document.getElementById('video-grid')
+    gridNumber = Math.ceil(userCount / 4)
 
+    var grids = document.querySelectorAll(".video-grid")
+    var gridCount = grids.length
+
+    console.log(grids)
+    
     // names of variables for ease
     const gridRows = "--grid-rows"
     const gridColumns = "--grid-columns"
+    
+    for (let i=0; i < gridCount; i++) {
+        console.log(grids[i])
+        let gridLength = grids[i].querySelectorAll(".video-container").length
+        console.log(gridLength)
+        if(gridLength == 0) {flkty.remove(grids[i]); gridNumber--; continue;}
 
-    console.log(userCount, type, gridRows, gridColumns)
-
-    var rows = parseInt(getComputedStyle(grid).getPropertyValue(gridRows))
-    var columns = parseInt(getComputedStyle(grid).getPropertyValue(gridColumns))
-    
-    if (type == " vertical ") {
-        console.log("Vertical window.")
-        if (userCount == 1) {
-            grid.style.setProperty(gridRows, 1)
-            grid.style.setProperty(gridColumns, 1)
-        }
-    
-        else if (userCount == 2) {
-            grid.style.setProperty(gridRows, 2)
-            grid.style.setProperty(gridColumns, 1)
-        }
-    
-        else if (userCount == 3) {
-            grid.style.setProperty(gridRows, 3)
-            grid.style.setProperty(gridColumns, 1)
+        if (gridLength > 4) {
+            const container = grids[i].querySelector('.video-container')
+            gridNumber++
+            const newGrid = document.createElement('div')
+            newGrid.className = "video-grid gallery-cell"
+            newGrid.setAttribute('id', `${videoGrid}${i+2}`)
+            newGrid.appendChild(container)
+            flkty.append(newGrid)
+            flkty.selectCell(i+1)
+            continue;
         }
 
-        else if (userCount == 4) {
-            grid.style.setProperty(gridRows, 2)
-            grid.style.setProperty(gridColumns, 2)
+        console.log("Calculating...")
+        var type = getComputedStyle(document.documentElement).getPropertyValue("--type")
+    
+    
+        console.log(gridLength, type, gridRows, gridColumns)
+    
+        let rows = parseInt(getComputedStyle(grids[i]).getPropertyValue(gridRows))
+        let columns = parseInt(getComputedStyle(grids[i]).getPropertyValue(gridColumns))
+        
+        console.log(rows, columns)
+
+        if (type == " vertical ") {
+            console.log("Vertical window.")
+            if (gridLength == 1) {
+                grids[i].style.setProperty(gridRows, 1)
+                grids[i].style.setProperty(gridColumns, 1)
+            }
+        
+            else if (gridLength == 2) {
+                grids[i].style.setProperty(gridRows, 2)
+                grids[i].style.setProperty(gridColumns, 1)
+            }
+        
+            else if (gridLength == 3) {
+                grids[i].style.setProperty(gridRows, 3)
+                grids[i].style.setProperty(gridColumns, 1)
+            }
+    
+            else if (gridLength == 4) {
+                grids[i].style.setProperty(gridRows, 2)
+                grids[i].style.setProperty(gridColumns, 2)
+            }
+        }
+        else {
+            console.log("Horizontal window.")
+            if (gridLength == 1) {
+                grids[i].style.setProperty(gridRows, 1)
+                grids[i].style.setProperty(gridColumns, 1)
+            }
+            else if (gridLength == 2) {
+                grids[i].style.setProperty(gridRows, 1)
+                grids[i].style.setProperty(gridColumns, 2)
+            }
+            else if (gridLength == 3) {
+                grids[i].style.setProperty(gridRows, 1)
+                grids[i].style.setProperty(gridColumns, 3)
+            }
+            else if (gridLength == 4) {
+                grids[i].style.setProperty(gridRows, 2)
+                grids[i].style.setProperty(gridColumns, 2)
+            }
         }
     }
-    else {
-        console.log("Horizontal window.")
-        if (userCount == 1) {
-            grid.style.setProperty(gridRows, 1)
-            grid.style.setProperty(gridColumns, 1)
-        }
-        else if (userCount == 2) {
-            grid.style.setProperty(gridRows, 1)
-            grid.style.setProperty(gridColumns, 2)
-        }
-        else if (userCount == 3) {
-            grid.style.setProperty(gridRows, 1)
-            grid.style.setProperty(gridColumns, 3)
-        }
-        else if (userCount == 4) {
-            grid.style.setProperty(gridRows, 2)
-            grid.style.setProperty(gridColumns, 2)
-        }
-    }
+
+
 }
 
 
