@@ -284,7 +284,7 @@ app.post('/api/forgot-password', async (req, res) => {
         port: 587,
         secure: false,
         auth: {
-            user: "appfirewood@gmail.com",
+            user: `${process.env.MAIL}`,
             pass: `${process.env.PASSWORD}`
         },
     })
