@@ -79,6 +79,14 @@ app.get('/', (req, res) => {
     res.render('home', {user: user})
 })
 
+/*app.get('/account', loginRequired, async (req, res) => {
+    var token = jsonwebtoken.verify(req.cookies['token'], process.env.JWT_SECRET)
+    console.log(token)
+    const user = await User.findById(token['id']).exec()
+    console.log(user)
+    res.render('account', { user: user })
+})*/
+
 app.get('/new-cabin', loginRequired, (req, res) => {
     const cabinAddress = uuidV4()
     res.redirect(`/cabin/${cabinAddress}`)
@@ -159,8 +167,6 @@ app.get('/forgot-password/reset-:resetId?', async (req, res) => {
 
     const user = await User.findById(reset['userId'])
     if (!user) return res.redirect('/forgot-password')
-
-    console.log(user)
     
     return res.render("password/change-password", { id: user['_id'] })
 })
@@ -291,7 +297,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
     let mail = await transporter.sendMail({
         from: '"Firewood [no-reply]" <app@firewood.ga>',
-        to: "sahnivarun62@gmail.com",
+        to: user['email'],
         subject: `Firewood: Reset account password - #${emailId}`,
         html: resetMail(user['username'], resetURL, emailId)
         
