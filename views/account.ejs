@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="d-flex flex-column justify-content-center align-items-center min-vh-100">
+        <h1 class="item text-center" style="font-size: 3rem;">Hey, <a id="account" href="/account" style="color:rgb(224, 113, 21)"><%= user.username %>!</a></h1>
+        <hr>
+        <button class="btn btn-primary item" onclick="newCabin()" class="item">Make a New Cabin</button>
+        <hr>
+        <form id="join" class="d-inline row g-3 row-cols-lg-auto align-items-center justify-content-center">
+            <div class="col-auto">
+                <input class="form-control" type="text" autofill="off" id="cabinId" placeholder="Cabin ID">
+            </div>
+            <div class="col-auto justify-content-center d-flex">
+                <input class="btn btn-light" type="submit" value="Join!">
+            </div>
+        </form>
+        <hr>
+        <a class="btn btn-danger item" href="/logout">Log-out</a>
+    </div>
+
+    
+    
+    
+    <!--
+    <div id="friends">
+        <form id="addFriend">
+            <input type="text" autofill="off" id="friendUsermail" placeholder="Friend Username/E-mail">
+            <input type="submit" placeholder="Add Friend">
+        </form>
+    </div>
+    -->
+    <script>
+
+        const joinRoomForm = document.getElementById('join')
+        joinRoomForm.addEventListener('submit', join)
+        async function join(e) {
+            e.preventDefault()
+            const cabinId = await document.getElementById('cabinId').value
+            console.log(cabinId)
+            window.location.href=`/cabin/${cabinId}`
+        }
+
+        function newCabin() {
+            window.location.href="/new-cabin"
+        }
+
+        const addFriendForm = document.getElementById('addFriend')
+        addFriendForm.addEventListener('submit', addFriend) 
+        
+        async function addFriend() {
+            e.preventDefault()
+            const friendUsermail = document.getElementById('friendUsermail')
+
+            const result = await fetch(`api/add-friend`, {
+                method: 'POST',
+                body: friendUsermail
+            }).then(res => res.json())
+
+            if (result.status === 'ok') {
+                console.log("Token: ", result.data)
+                window.location.replace('/');
+            }
+            else {
+                alert(result.error)
+                window.location.replace('/register');
+            }
+
+        }
+    </script>
+</body>
+</html>

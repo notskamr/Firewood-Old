@@ -331,9 +331,9 @@ app.post('/api/register', async (req, res) => {
     if (password != confirmation) {
         return res.json({ status: 'error', error: "Passwords don't match."})
     }
-
+    var response;
     try {
-        const response = await User.create({
+        response = await User.create({
             username,
             email,
             password
@@ -347,8 +347,7 @@ app.post('/api/register', async (req, res) => {
         throw error
     }
 
-    const user = await User.findOne({ email }).lean()
-    const token = jsonwebtoken.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET)
+    const token = jsonwebtoken.sign({ id: response._id, username: response.username }, process.env.JWT_SECRET)
     res.cookie('token', token, { maxAge: 1000*60*60*24*cookieAge })
     res.json({status: 'ok'})
 
