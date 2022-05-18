@@ -26,6 +26,7 @@ jobs:
         FIREWOOD_DB_URI: ${{ secrets.FIREWOOD_DB_URI }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
         PASSWORD: ${{ secrets.PASSWORD }}
+        MAIL: ${{ secrets.MAIL }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
