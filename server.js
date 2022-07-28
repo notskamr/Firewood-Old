@@ -163,16 +163,14 @@ app.get('/forgot-password/reset-:resetId?', async (req, res) => {
     if (!reset) return res.redirect('/forgot-password')
     console.log(reset)
 
-    const resetUser = reset['userId']
-
     const user = await User.findById(reset['userId'])
     if (!user) return res.redirect('/forgot-password')
     
-    return res.render("password/change-password", { id: user['_id'] })
+    return res.render("password/change-password", { id: user['_id'], resetURL: resetId })
 })
 
 app.post('/api/change-password', async (req, res) => {
-    if (!req.body.password || !req.body.confirmation || !req.body.userId ) return res.json({status: 'error', error: 'Missing fields.'})
+    if (!req.body.password || !req.body.confirmation || !req.body.userId || !req.body.resetURL ) return res.json({status: 'error', error: 'Missing fields.'})
     if (req.body.password != req.body.confirmation) return res.json({status: 'error', error: 'Both password fields don\'t match.'})
 
     const password = req.body.password
@@ -180,6 +178,9 @@ app.post('/api/change-password', async (req, res) => {
         return res.json({ status: 'error', error: 'Password is too small. Should be atleast 7 characters.'})
     }
     
+    const reset = await ResetPassword.findOne({ resetURL: req.body.resetURL, userId: req.body.userId }).exec()
+    if (!reset) return res.redirect('/forgot-password')
+    await ResetPassword.deleteOne({ resetURL: req.body.resetURL })
     const userId = req.body.userId
     // Finding user
     const user = User.findById(req.body.userId).then(
@@ -287,8 +288,8 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const transporter = NodeMailer.createTransport({
         host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
+        port: 465,
+        secure: true,
         auth: {
             user: `${process.env.MAIL}`,
             pass: `${process.env.PASSWORD}`
