@@ -19,7 +19,6 @@ import { ResetPassword } from "./models/reset.js"
 import { resetMail } from "./mail/ResetPassword.js"
 import { ObjectId } from "mongodb"
 
-
 const app = express()
 
 dotenv.config()
@@ -35,6 +34,13 @@ app.use(cookieParser())
 
 const server = http.Server(app)
 const io = new Server(server)
+
+// Peer Server
+const peerServer = ExpressPeerServer(server, {
+    path: '/firewood'
+  });
+  
+app.use('/peerjs', peerServer);
 
 
 const cookieAge = 3 // in days
@@ -354,7 +360,7 @@ app.post('/api/register', async (req, res) => {
 
 })
 
-app.get('/api/state.json', (req, res) => {
+app.get('/api/state', (req, res) => {
     res.type('json')
     var state = null;
     var token = req.cookies['token']

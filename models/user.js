@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     friends: [{ type: ObjectId, ref: 'Friends'}],
-    enemies: [{ type: ObjectId , ref: 'User'}]
+    enemies: [{ type: ObjectId, ref: 'User'}]
 }, { collection: 'users' , timestamps: true})
 
 UserSchema.pre("save", function (next) {

@@ -27,7 +27,7 @@ function constructLocalVideo(id, text, stream, self=false) {
         video.setAttribute('muted', '');
         video.setAttribute('playsinline', '');
 
-        video.setAttribute('id', id); 
+        video.setAttribute('id', `video-${id}`); 
         video.srcObject = stream
         if (self) video.muted = true
             const videoDiv = document.createElement('div')

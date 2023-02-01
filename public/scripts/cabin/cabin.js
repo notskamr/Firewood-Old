@@ -4,9 +4,8 @@ import { UserStream } from "./UserStream.js"
 
 const socket = io('/')
 const peer = new Peer(USER_ID, {
-    secure: true,
-    host: 'firewood-peerjs-server.herokuapp.com',
-    port: 443
+    host: '/',
+    path: "/peerjs/firewood"
 })
 
 const videoGrid = "video-grid"
@@ -16,7 +15,7 @@ var userCount = 1;
 var users = {}
 var peers = {}
 
-var facing = "user"
+let facing = "user"
 var localVideo;
 
 var userLeaveSound = new Audio('.././sounds/userLeave.ogg')
@@ -25,20 +24,20 @@ var gridNumber = 1;
 // Checking the SupportedConstraints of the device
 const supports = navigator.mediaDevices.getSupportedConstraints();
 
-/* const flipButton = document.getElementById("flip-camera")
+// const flipButton = document.getElementById("flip-camera")
 
-if (!supports.facingMode) {
-    // flipButton.remove()
-}
-else {
-    flipButton.addEventListener('click', () => {
-        flipCamera()
-        console.log('flip')
-    })
-}
+// if (!supports.facingMode) {
+//     flipButton.remove()
+// }
+// else {
+//     flipButton.addEventListener('click', () => {
+//         flipCamera()
+//         console.log('flip')
+//     })
+// }
 
 
-*/
+
 console.log(supports)
 
 
@@ -168,49 +167,82 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
     peers[newUserId] = call
 }
 
-
-/* async function flipCamera() {
-    console.log("Flipping camera...")
-    const tracks = localStream.getTracks()
-    const currFacingMode = localStream.getVideoTracks()[0].getSettings().facingMode
-    console.log(facing)
-    tracks.forEach(track => { if (track.kind === "video") track.stop;})
-
-    let flippedStream;
-
-    if (facing == "user") {
-        await navigator.mediaDevices.getUserMedia({
-            video: {
-                width: {ideal: 1920},
-                height: {ideal: 1080},
-                facingMode: 'environment'
-            },
-        }).then(stream => {flippedStream = stream}).catch(err => console.log(err))
-
-        facing = "environment"
-    }
-    else {
-        await navigator.mediaDevices.getUserMedia({
-            video: {
-                width: {ideal: 1920},
-                height: {ideal: 1080},
-                facingMode: 'user'
-            },
-        }).then(stream => {flippedStream = stream}).catch(err => console.log(err))
-
-        facing = "user"
-    }
-
-    for (let [key, value] of Object.entries(peer.connections)) {
-        console.log(peer.connections)
-        console.log(key)
-        console.log(peer.connections[key][0].peerConnection.getSenders()[1])
-        peer.connections[key][0].peerConnection.getSenders()[1].replaceTrack(flippedStream.getTracks()[0])
-    }
-
-    console.log(localStream.getVideoTracks()[0])
+// function replaceTracks(newStream) {
+//     let video = document.getElementById(`video-${USER_ID}`)
     
-} */
+//     if (video) {
+//         video.pause();
+
+//         if (typeof video.srcObject === 'object') {
+//             video.srcObject = null;
+//         }
+//         else {
+//             video.src = "";
+//         }
+//     }
+//     console.log(localStream.getTracks())
+//     newStream.getVideoTracks().forEach((track) => {
+//         console.log(track)
+//         localStream.addTrack(track)
+//     })
+//     console.log(localStream.getTracks())
+
+//     if (video) {
+//         if (typeof video.srcObject === "object") video.srcObject = newStream
+//         else {
+//             video.src = window.URL.createObjectURL(newStream)
+//         }
+
+//         video.onloadedmetadata = (e) => {
+//             video.play()
+//         }
+//     } else {
+//         throw new Error("Unable to flip!")
+//     }
+//     console.log(peer.connections)
+//     peer.getSenders().map((sender) => {
+//         sender.replaceTrack(newStream.getTracks().find(track => {
+//             return track.kind === sender.track.kind
+//         }))
+//     })
+// }
+
+// async function flipCamera() {
+//     console.log("Flipping camera...")
+//     const currFacingMode = localStream.getVideoTracks()[0].getSettings().facingMode
+//     console.log(facing)
+
+//     const tracks = localStream.getTracks()
+//     for (let track of tracks) {
+//         track.stop();
+//     }
+//     let flippedStream;
+
+//     if (facing == "user") {
+//         await navigator.mediaDevices.getUserMedia({
+//             video: {
+//                 width: {ideal: 1920},
+//                 height: {ideal: 1080},
+//                 facingMode: 'environment'
+//             },
+//             audio: true
+//         }).then(stream => replaceTracks(stream))
+
+//         facing = "environment"
+//     }
+//     else {
+//         await navigator.mediaDevices.getUserMedia({
+//             video: {
+//                 width: {ideal: 1920},
+//                 height: {ideal: 1080},
+//                 facingMode: 'user'
+//             }
+//         }).then(stream => replaceTracks(stream))
+
+//         facing = "user"
+//     }
+    
+// }
 
 
 // Setting up flkty for carousels
