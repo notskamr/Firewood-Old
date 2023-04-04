@@ -1,0 +1,5 @@
+Tauri/Capacitor/Ionic OR A PWA. - SVELTE + CAPACITOR
+SvelteKit (static-adapter)
+Express Backend
+Authorization with JWT cookies
+MongoDB database

@@ -13,32 +13,71 @@ const videoGrid = "video-grid"
 var localStream;
 var userCount = 1;
 var users = {}
-var peers = {}
+var peers = []
 
-let facing = "user"
+let front = true
 var localVideo;
 
 var userLeaveSound = new Audio('.././sounds/userLeave.ogg')
 var userJoinSound = new Audio('.././sounds/userJoin.ogg')
 var gridNumber = 1;
 // Checking the SupportedConstraints of the device
-const supports = navigator.mediaDevices.getSupportedConstraints();
 
-// const flipButton = document.getElementById("flip-camera")
-
-// if (!supports.facingMode) {
-//     flipButton.remove()
-// }
-// else {
-//     flipButton.addEventListener('click', () => {
-//         flipCamera()
-//         console.log('flip')
+// const flipCamera = async () => {
+//     front = !front
+//     new Stream().getFlippedVideoTrack(front=front).then(videoTrack => {
+//         console.log(videoTrack)
+//         peer.getSenders().map((senders) => {
+//         const sender = senders.find((s) => s.track.kind === videoTrack.kind)
+//         console.log("Sender:", sender)
+//         sender.replaceTrack(videoTrack)
 //     })
+//     })
+//     let video = document.getElementById(`video-${USER_ID}`)
+    
+//     if (video) {
+//         video.pause();
+
+//         if (typeof video.srcObject === 'object') {
+//             video.srcObject = null;
+//         }
+//         else {
+//             video.src = "";
+//         }
+//     }
+
+//     if (video) {
+//         if (typeof video.srcObject === "object") video.srcObject = localStream
+//         else {
+//             video.src = window.URL.createObjectURL(localStream)
+//         }
+    
+//         video.onloadedmetadata = (e) => {
+//                 video.play()
+//         }
+//         } 
+//     else {
+//         throw new Error("Unable to flip!")
+//     }
 // }
 
+const getSupportAndCheck = async () => {
+    const supports = navigator.mediaDevices.getSupportedConstraints();
+    const flipButton = document.getElementById("flip-camera")
+    if (!supports.facingMode) {
+        flipButton.remove()
+    }
+    else {
+        flipButton.addEventListener('click', () => {
+            flipCamera()
+            console.log('Flipped camera', localStream.getVideoTracks())
+        })
+    }
+    console.log(supports)
+}
 
+getSupportAndCheck()
 
-console.log(supports)
 
 
 // creating and getting a new Stream
@@ -51,6 +90,8 @@ new Stream().getLocal().then(
         // Constructing the video element
         const constructedLocalVideo = new Video(userStream.constructLocalVideo(`You (${USERNAME})`))
         constructedLocalVideo.appendGrid(`${videoGrid}${gridNumber}`)
+
+
 
         // Printing out our media stream resolution (For convenience!)
         console.log(`Width: ${stream.getVideoTracks()[0].getSettings().width} Height: ${stream.getVideoTracks()[0].getSettings().height}`)
@@ -167,82 +208,65 @@ async function connectToNewUser(username, userId, newUserId, newUsername, stream
     peers[newUserId] = call
 }
 
-// function replaceTracks(newStream) {
-//     let video = document.getElementById(`video-${USER_ID}`)
+function replaceTracks(newStream) {
+    console.log(newStream)
+    localStream.getTracks().forEach((track) => {
+        track.stop()
+    })
+
+    let video = document.getElementById(`video-${USER_ID}`)
     
-//     if (video) {
-//         video.pause();
+    if (video) {
+        video.pause();
 
-//         if (typeof video.srcObject === 'object') {
-//             video.srcObject = null;
-//         }
-//         else {
-//             video.src = "";
-//         }
-//     }
-//     console.log(localStream.getTracks())
-//     newStream.getVideoTracks().forEach((track) => {
-//         console.log(track)
-//         localStream.addTrack(track)
-//     })
-//     console.log(localStream.getTracks())
+        if (typeof video.srcObject === 'object') {
+            video.srcObject = null;
+        }
+        else {
+            video.src = "";
+        }
+    }
+    localStream = newStream
+    console.log("Local stream tracks: ", localStream.getTracks())
 
-//     if (video) {
-//         if (typeof video.srcObject === "object") video.srcObject = newStream
-//         else {
-//             video.src = window.URL.createObjectURL(newStream)
-//         }
+    if (video) {
+        if (typeof video.srcObject === "object") video.srcObject = newStream
+        else {
+            video.src = window.URL.createObjectURL(newStream)
+        }
 
-//         video.onloadedmetadata = (e) => {
-//             video.play()
-//         }
-//     } else {
-//         throw new Error("Unable to flip!")
-//     }
-//     console.log(peer.connections)
-//     peer.getSenders().map((sender) => {
-//         sender.replaceTrack(newStream.getTracks().find(track => {
-//             return track.kind === sender.track.kind
-//         }))
-//     })
-// }
+        video.onloadedmetadata = (e) => {
+            video.play()
+        }
+    } else {
+        throw new Error("Unable to flip!")
+    }
 
-// async function flipCamera() {
-//     console.log("Flipping camera...")
-//     const currFacingMode = localStream.getVideoTracks()[0].getSettings().facingMode
-//     console.log(facing)
+    peers.forEach(call => {
+        call.peerConnection.getSenders()[0].replaceTrack(localStream.getVideoTracks()[0])
+    })
 
-//     const tracks = localStream.getTracks()
-//     for (let track of tracks) {
-//         track.stop();
-//     }
-//     let flippedStream;
+    // console.log(peer.connections)
+    // peer.peerConnection.getSenders().map((sender) => {
+    //     sender.replaceTrack(localStream.getTracks().find(track => {
+    //         return track.kind === sender.track.kind
+    //     }))
+    // })
+}
 
-//     if (facing == "user") {
-//         await navigator.mediaDevices.getUserMedia({
-//             video: {
-//                 width: {ideal: 1920},
-//                 height: {ideal: 1080},
-//                 facingMode: 'environment'
-//             },
-//             audio: true
-//         }).then(stream => replaceTracks(stream))
-
-//         facing = "environment"
-//     }
-//     else {
-//         await navigator.mediaDevices.getUserMedia({
-//             video: {
-//                 width: {ideal: 1920},
-//                 height: {ideal: 1080},
-//                 facingMode: 'user'
-//             }
-//         }).then(stream => replaceTracks(stream))
-
-//         facing = "user"
-//     }
+async function flipCamera() {
+    console.log("Flipping camera...")
+    await navigator.mediaDevices.getUserMedia({
+        video: {
+            width: {ideal: 1920},
+            height: {ideal: 1080},
+            facingMode: front ? "environment" : "user"
+        }
+    }).then(stream => replaceTracks(stream))
+    console.log(front)
+    front = !front
     
-// }
+}
 
 
 // Setting up flkty for carousels
