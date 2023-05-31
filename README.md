@@ -1,3 +1,5 @@
+## Disclaimer: This version of Firewood is no longer being updated - a newer version with a better UI and much better capabilities will be out eventually
+
 
 # Firewood
 - A simple and easy-to-use video calling website
