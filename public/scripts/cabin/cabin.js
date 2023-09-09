@@ -292,7 +292,7 @@ function calculateGrid() {
         
         console.log(rows, columns)
 
-        if (type == " vertical ") {
+        if (type == "vertical") {
             console.log("Vertical window.")
             if (gridLength == 1) {
                 grids[i].style.setProperty(gridRows, 1)
