@@ -55,7 +55,7 @@ body {
 .control-buttons {
     margin: 0 auto;
     position: absolute;
-    top: 92%;
+    bottom: 0;
     left: 0;
     right: 0;
 }
