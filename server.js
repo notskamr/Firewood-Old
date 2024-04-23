@@ -303,7 +303,7 @@ app.post('/api/forgot-password', async (req, res) => {
     })
 
     let mail = await transporter.sendMail({
-        from: '"Firewood [no-reply]" <app@firewood.ga>',
+        from: '"Firewood [no-reply]" <appfirewood@gmail.com>',
         to: user['email'],
         subject: `Firewood: Reset account password - #${emailId}`,
         html: resetMail(user['username'], resetURL, emailId)
