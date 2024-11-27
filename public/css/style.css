@@ -123,6 +123,8 @@ body {
     width: 100%;
     object-fit: cover;
     border-radius: 1.5rem;
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
 }
 
 .user-text-div {

@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"devStart": "nodemon server.js",
+		"dev": "nodemon server.js",
 		"start": "node server.js"
 	},
 	"author": "",
@@ -29,9 +29,9 @@
 		"node-fetch": "^3.2.3",
 		"nodemailer": "^6.7.5",
 		"nodemon": "^2.0.15",
-		"peer": "^0.6.1",
+		"peer": "^1.0.2",
 		"peerjs": "^1.4.2",
-		"socket.io": "^4.4.1",
+		"socket.io": "^4.8.1",
 		"uuid": "^8.3.2"
 	}
 }
