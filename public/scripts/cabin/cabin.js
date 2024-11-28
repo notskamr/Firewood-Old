@@ -388,12 +388,12 @@ var leaveSound = new Audio('.././sounds/leave.ogg');
 leaveBtn.addEventListener('click', async (e) => {
     if (!left) {
         e.preventDefault();
+        disconnect();
         leaveSound.play();
         left = true;
         setTimeout(() => {
             window.location.replace("/");
         }, 450);
-
     }
 });
 
@@ -439,9 +439,11 @@ if (debugButton) {
     });
 }
 
-window.onbeforeunload = () => {
+window.onbeforeunload = disconnect;
+
+function disconnect() {
     peer.close();
     socket.emit('disconnect');
-};
+}
 
 window.onresize = calculateGrid;
