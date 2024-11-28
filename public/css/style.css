@@ -130,6 +130,7 @@ body {
 .user-text-div {
     margin: 1rem;
     position: absolute;
+    z-index: 50;
     vertical-align: top;
     text-align: center;
     background-color: gray;
