@@ -111,6 +111,11 @@ socket.on('user-disconnected', (id, username) => {
     // Logging the disconnection
     console.log(`${username} (${id}) disconnected.`);
 
+    if (id == USER_ID) {
+        console.log("You left the room.");
+        return;
+    }
+
     // Remove that users video element
     if (document.getElementById(`div-${id}`)) document.getElementById(`div-${id}`).remove();
 
