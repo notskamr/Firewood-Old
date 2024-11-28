@@ -444,7 +444,7 @@ window.onbeforeunload = disconnect;
 function disconnect() {
     if (peer.close)
         peer.close();
-    socket.emit('disconnect');
+    socket.emit('leave-cabin');
 }
 
 window.onresize = calculateGrid;

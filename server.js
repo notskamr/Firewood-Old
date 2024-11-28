@@ -112,7 +112,7 @@ io.on('connection', socket => {
             console.log(data);
         });
 
-        socket.on('disconnect', () => {
+        socket.on('leave-cabin', () => {
             console.log(`${username} (${userId}) disconnected from '${cabinAddress}'`);
             socket.to(cabinAddress).emit('user-disconnected', userId, username);
             socket.disconnect(true);
