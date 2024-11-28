@@ -12,8 +12,10 @@ const peer = new Peer(USER_ID, {
 const videoGrid = "video-grid";
 
 let localStream;
-let users = {};
-let peers = {};
+window.users = {};
+window.peers = {};
+
+
 
 let facing = "user";
 let localVideo;
