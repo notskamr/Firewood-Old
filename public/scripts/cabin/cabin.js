@@ -442,7 +442,8 @@ if (debugButton) {
 window.onbeforeunload = disconnect;
 
 function disconnect() {
-    peer.close();
+    if (peer.close)
+        peer.close();
     socket.emit('disconnect');
 }
 
