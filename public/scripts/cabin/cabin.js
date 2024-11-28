@@ -3,11 +3,7 @@ import Video from "./Video.js";
 import { UserStream } from "./UserStream.js";
 
 const socket = io('/');
-const peer = new Peer(USER_ID, {
-    host: '/',
-    path: "/peerjs/firewood",
-    // debug: 2,
-});
+const peer = new Peer(USER_ID);
 
 const videoGrid = "video-grid";
 
